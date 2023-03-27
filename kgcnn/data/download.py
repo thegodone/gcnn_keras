@@ -54,6 +54,7 @@ class DownloadDataset:
                  unpack_directory_name: str = None,
                  extract_file_name: str = None,
                  download_url: str = None,
+                 load_url: str = None,
                  unpack_tar: bool = False,
                  unpack_zip: bool = False,
                  extract_gz: bool = False,
@@ -88,6 +89,7 @@ class DownloadDataset:
         self.unpack_directory_name = unpack_directory_name
         self.extract_file_name = extract_file_name
         self.download_url = download_url
+        self.load_url = load_url
         self.unpack_tar = unpack_tar
         self.unpack_zip = unpack_zip
         self.extract_gz = extract_gz
@@ -115,6 +117,11 @@ class DownloadDataset:
             self.download_database(
                 os.path.join(self.data_main_dir, self.data_directory_name), self.download_url,
                 self.download_file_name, overwrite=self.download_reload, logger=self.logger_download)
+
+        if self.load_url is not None:
+            self.load_database(
+                os.path.join(self.data_main_dir, self.data_directory_name), self.load_url,
+                 overwrite=self.download_reload, logger=self.logger_download)
 
         if self.unpack_tar:
             self.unpack_tar_file(
@@ -183,6 +190,32 @@ class DownloadDataset:
         else:
             logg_info("Dataset found. Done.")
         return os.path.join(path, filename)
+
+    @staticmethod
+    def load_database(path: str, filename: str, overwrite: bool = False, logger=None):
+        """load dataset file.
+
+        Args:
+            path (str): Target filepath to store file (without filename).
+            filename (str): Name the dataset is downloaded to.
+            overwrite (bool): Overwrite existing database. Default is False.
+            logger: Logger to print information or warnings.
+
+        Returns:
+            os.path: Filepath of loaded file.
+        """
+        def logg_info(msg):
+            if logger is not None:
+                logger.info(msg)
+
+        if os.path.exists(os.path.join(path, filename)) is False or overwrite:
+            logg_info("copy dataset... ")
+            shutil.copyfile(filename, os.path.join(path, filename))
+        else:
+            logg_info("Dataset found. Done.")
+
+        return os.path.join(path, filename)
+
 
     @staticmethod
     def unpack_tar_file(path: str, filename: str, unpack_directory: str, overwrite: bool = False, logger=None):
